@@ -1,109 +1,229 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cheapmeal Counter</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#007bff">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto&display=swap">
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f8f9fa;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        select, button {
-            font-size: 1.2rem;
-            padding: 10px;
-            margin: 10px;
-            border-radius: 10px;
-            border: 1px solid #ccc;
-        }
-        .counter {
-            font-size: 2rem;
-            margin-top: 20px;
-            color: #007bff;
-        }
-        img {
-            height: 100px;
-            margin: 10px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contador de Cheat Meals</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto&display=swap">
+  <style>
+    :root {
+      --bg-color: #f8f9fa;
+      --text-color: #333;
+      --accent-color: #007bff;
+      --card-bg: #ffffff;
+    }
+
+    body.dark-mode {
+      --bg-color: #121212;
+      --text-color: #ffffff;
+      --accent-color: #66b0ff;
+      --card-bg: #1e1e1e;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    select, button {
+      font-size: 1rem;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      background-color: var(--card-bg);
+      color: var(--text-color);
+    }
+
+    .food-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    .food-item {
+      background-color: var(--card-bg);
+      border-radius: 10px;
+      padding: 15px;
+      width: 150px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    .food-item img {
+      width: 80px;
+      height: 80px;
+    }
+
+    .countdown {
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    .favorite {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--accent-color);
+    }
+
+    .favorite.active {
+      color: gold;
+    }
+
+    #progressContainer {
+      background: #e0e0e0;
+      border-radius: 20px;
+      overflow: hidden;
+      height: 20px;
+      width: 100%;
+      max-width: 400px;
+      margin-top: 10px;
+    }
+
+    #progressBar {
+      height: 100%;
+      width: 0%;
+      background-color: var(--accent-color);
+    }
+  </style>
 </head>
 <body>
-    <h1>🍔 Cheapmeal Counter 🍕</h1>
+  <h1>🍔 Contador de Cheat Meals 🍕</h1>
 
-    <label for="food">Select your food:</label><br>
-    <select id="food" onchange="updateImage()">
-        <option value="burger">Burger 🍔</option>
-        <option value="pizza">Pizza 🍕</option>
-        <option value="hotdog">Hot Dog 🌭</option>
-    </select>
-
-    <br>
-    <label for="days">How many days between cheat meals?</label><br>
+  <div class="controls">
+    <label for="days">Días entre cheat meals:</label>
     <select id="days">
-        <option value="5">5 Days</option>
-        <option value="7">7 Days</option>
-        <option value="14">14 Days</option>
+      <option value="5">5 Días</option>
+      <option value="7">7 Días</option>
+      <option value="14">14 Días</option>
     </select>
 
-    <br>
-    <button onclick="resetCounter()">🍽️ I Ate a Cheat Meal</button>
+    <button onclick="resetCounter()">🍽️ Comí una Cheat Meal</button>
+    <button onclick="toggleDarkMode()">🌓 Modo Oscuro</button>
+  </div>
 
-    <div class="counter" id="countdown"></div>
-    <img id="foodImage" src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="food">
+  <div id="progressContainer">
+    <div id="progressBar"></div>
+  </div>
 
-    <script>
-        const images = {
-            burger: 'https://cdn-icons-png.flaticon.com/512/1046/1046784.png',
-            pizza: 'https://cdn-icons-png.flaticon.com/512/3132/3132693.png',
-            hotdog: 'https://cdn-icons-png.flaticon.com/512/5787/5787827.png'
-        };
+  <div class="food-container" id="foodContainer">
+    <!-- Los elementos de comida se generarán dinámicamente -->
+  </div>
 
-        function updateImage() {
-            const food = document.getElementById('food').value;
-            document.getElementById('foodImage').src = images[food];
+  <script>
+    const foods = {
+      burger: {
+        name: 'Hamburguesa',
+        emoji: '🍔',
+        image: 'https://cdn-icons-png.flaticon.com/512/1046/1046784.png'
+      },
+      pizza: {
+        name: 'Pizza',
+        emoji: '🍕',
+        image: 'https://cdn-icons-png.flaticon.com/512/3132/3132693.png'
+      },
+      hotdog: {
+        name: 'Hot Dog',
+        emoji: '🌭',
+        image: 'https://cdn-icons-png.flaticon.com/512/5787/5787827.png'
+      }
+    };
+
+    let favoriteFood = localStorage.getItem('favoriteFood') || null;
+    let lastMealDate = localStorage.getItem('lastMealDate') ? new Date(localStorage.getItem('lastMealDate')) : null;
+    let interval = parseInt(localStorage.getItem('interval')) || 7;
+
+    const foodContainer = document.getElementById('foodContainer');
+
+    function createFoodItems() {
+      foodContainer.innerHTML = '';
+      for (const key in foods) {
+        const food = foods[key];
+        const item = document.createElement('div');
+        item.className = 'food-item';
+        item.innerHTML = `
+          <button class="favorite ${favoriteFood === key ? 'active' : ''}" onclick="setFavorite('${key}')">⭐</button>
+          <img src="${food.image}" alt="${food.name}">
+          <div>${food.name} ${food.emoji}</div>
+          <div class="countdown" id="countdown-${key}">⏳ Calculando...</div>
+        `;
+        foodContainer.appendChild(item);
+      }
+    }
+
+    function setFavorite(foodKey) {
+      favoriteFood = foodKey;
+      localStorage.setItem('favoriteFood', favoriteFood);
+      createFoodItems();
+    }
+
+    function resetCounter() {
+      lastMealDate = new Date();
+      interval = parseInt(document.getElementById('days').value);
+      localStorage.setItem('lastMealDate', lastMealDate);
+      localStorage.setItem('interval', interval);
+      updateCountdowns();
+    }
+
+    function updateCountdowns() {
+      const now = new Date();
+      const nextMealDate = new Date(lastMealDate);
+      nextMealDate.setDate(lastMealDate.getDate() + interval);
+      const timeDiff = nextMealDate - now;
+
+      for (const key in foods) {
+        const countdownElement = document.getElementById(`countdown-${key}`);
+        if (timeDiff > 0) {
+          const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((timeDiff / (1000 * 60 * 60)) % 24);
+          const minutes = Math.floor((timeDiff / (1000 * 60)) % 60);
+          const seconds = Math.floor((timeDiff / 1000) % 60);
+          countdownElement.textContent = `⏳ ${days}d ${hours}h ${minutes}m ${seconds}s`;
+        } else if (timeDiff === 0) {
+          countdownElement.textContent = `✅ ¡Hoy es día de cheat meal!`;
+        } else {
+          countdownElement.textContent = `⚠️ ¡Te has retrasado!`;
         }
+      }
 
-        function resetCounter() {
-            const interval = parseInt(document.getElementById('days').value);
-            const lastDate = new Date();
-            localStorage.setItem('lastMealDate', lastDate);
-            localStorage.setItem('interval', interval);
-            updateCountdown();
-        }
+      // Actualizar barra de progreso
+      const daysPassed = Math.floor((now - lastMealDate) / (1000 * 60 * 60 * 24));
+      const percent = Math.min((daysPassed / interval) * 100, 100);
+      document.getElementById('progressBar').style.width = `${percent}%`;
+    }
 
-        function updateCountdown() {
-            const lastDate = new Date(localStorage.getItem('lastMealDate'));
-            const interval = parseInt(localStorage.getItem('interval')) || 7;
-            const now = new Date();
-            const diffTime = Math.max(0, interval - Math.floor((now - lastDate) / (1000 * 60 * 60 * 24)));
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
 
-            const text = diffTime > 0 ?
-                `⏳ ${diffTime} day(s) left until your next cheat meal` :
-                `✅ You can eat your cheat meal today!`;
-
-            document.getElementById('countdown').innerText = text;
-        }
-
-        updateImage();
-        updateCountdown();
-        setInterval(updateCountdown, 60 * 1000);
-
-        // Register service worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then(reg => console.log('Service Worker registered.', reg))
-                .catch(err => console.error('Service Worker registration failed.', err));
-        }
-    </script>
+    createFoodItems();
+    updateCountdowns();
+    setInterval(updateCountdowns, 1000);
+  </script>
 </body>
 </html>
