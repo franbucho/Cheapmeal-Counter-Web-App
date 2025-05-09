@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheapmeal Counter</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007bff">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto&display=swap">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        select, button {
+            font-size: 1.2rem;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+        }
+        .counter {
+            font-size: 2rem;
+            margin-top: 20px;
+            color: #007bff;
+        }
+        img {
+            height: 100px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🍔 Cheapmeal Counter 🍕</h1>
+
+    <label for="food">Select your food:</label><br>
+    <select id="food" onchange="updateImage()">
+        <option value="burger">Burger 🍔</option>
+        <option value="pizza">Pizza 🍕</option>
+        <option value="hotdog">Hot Dog 🌭</option>
+    </select>
+
+    <br>
+    <label for="days">How many days between cheat meals?</label><br>
+    <select id="days">
+        <option value="5">5 Days</option>
+        <option value="7">7 Days</option>
+        <option value="14">14 Days</option>
+    </select>
+
+    <br>
+    <button onclick="resetCounter()">🍽️ I Ate a Cheat Meal</button>
+
+    <div class="counter" id="countdown"></div>
+    <img id="foodImage" src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="food">
+
+    <script>
+        const images = {
+            burger: 'https://cdn-icons-png.flaticon.com/512/1046/1046784.png',
+            pizza: 'https://cdn-icons-png.flaticon.com/512/3132/3132693.png',
+            hotdog: 'https://cdn-icons-png.flaticon.com/512/5787/5787827.png'
+        };
+
+        function updateImage() {
+            const food = document.getElementById('food').value;
+            document.getElementById('foodImage').src = images[food];
+        }
+
+        function resetCounter() {
+            const interval = parseInt(document.getElementById('days').value);
+            const lastDate = new Date();
+            localStorage.setItem('lastMealDate', lastDate);
+            localStorage.setItem('interval', interval);
+            updateCountdown();
+        }
+
+        function updateCountdown() {
+            const lastDate = new Date(localStorage.getItem('lastMealDate'));
+            const interval = parseInt(localStorage.getItem('interval')) || 7;
+            const now = new Date();
+            const diffTime = Math.max(0, interval - Math.floor((now - lastDate) / (1000 * 60 * 60 * 24)));
+
+            const text = diffTime > 0 ?
+                `⏳ ${diffTime} day(s) left until your next cheat meal` :
+                `✅ You can eat your cheat meal today!`;
+
+            document.getElementById('countdown').innerText = text;
+        }
+
+        updateImage();
+        updateCountdown();
+        setInterval(updateCountdown, 60 * 1000);
+
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(reg => console.log('Service Worker registered.', reg))
+                .catch(err => console.error('Service Worker registration failed.', err));
+        }
+    </script>
+</body>
+</html>
